@@ -25,7 +25,7 @@ export default function AboutPage() {
             
             <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-1 flex-shrink-0 z-10">
               <div className="w-full h-full rounded-2xl overflow-hidden bg-[#050a18] flex items-center justify-center relative">
-                <img src="/megavarshan.jpg" alt="Megavarshan A" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <img src="/megavarshan.jpg" alt="Megavarshan A" className="absolute inset-0 w-full h-full object-cover z-10" />
                 <div className="text-4xl absolute z-0">👨‍💻</div>
               </div>
             </div>
