@@ -37,7 +37,7 @@ export default function PublicDashboardClient() {
   };
 
   const toggleVoice = () => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) { alert('Voice not supported in this browser'); return; }
     
     if (isListening) {
