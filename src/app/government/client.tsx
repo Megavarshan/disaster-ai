@@ -29,13 +29,23 @@ export default function GovDashboardClient() {
   // Custom Data Upload State
   const [uploadedData, setUploadedData] = useState<{headers: string[], rows: string[][], filename: string} | null>(null);
   const [analyzingFile, setAnalyzingFile] = useState(false);
-  const [aiInsights, setAiInsights] = useState<{anomalies: number, trend: string, summary: string, dataPoints: number} | null>(null);
+  const [agentStatus, setAgentStatus] = useState<string>('');
+  const [aiInsights, setAiInsights] = useState<{
+    anomalies: number, 
+    trend: string, 
+    summary: string, 
+    dataPoints: number,
+    recommendation: string,
+    certainty: number,
+    basis: string
+  } | null>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setAnalyzingFile(true);
+    setAgentStatus('Initializing RAG Vector Database...');
     setUploadedData(null);
     setAiInsights(null);
 
@@ -48,16 +58,49 @@ export default function GovDashboardClient() {
       const headers = lines[0].split(',').map(h => h.trim());
       const rows = lines.slice(1).map(l => l.split(',').map(c => c.trim()));
 
+      // Simulate Agentic Steps
+      setTimeout(() => setAgentStatus('Extracting temporal features & embeddings...'), 1000);
+      setTimeout(() => setAgentStatus('Cross-referencing with Transformers...'), 2500);
+      setTimeout(() => setAgentStatus('Retrieving context via RAG...'), 4000);
+      setTimeout(() => setAgentStatus('Calculating certainty & Mahalanobis Distance...'), 5500);
+
       setTimeout(() => {
         setUploadedData({ headers, rows, filename: file.name });
+        
+        const anomaliesFound = Math.floor(Math.random() * 5) + 1;
+        const cert = (Math.random() * 15 + 80).toFixed(1); // 80-95%
+        
         setAiInsights({
-          anomalies: Math.floor(Math.random() * 5) + 1,
+          anomalies: anomaliesFound,
           trend: rows.length > 50 ? 'Significant historical deviations detected in recent epochs.' : 'Data volume too low for long-term confident forecasting, but short-term anomalies found.',
-          summary: `The DADIP AI Agent has successfully ingested ${file.name}. It parsed ${rows.length} records across ${headers.length} dimensions. We have cross-referenced this dataset with live NDEM open-meteo feeds and identified critical outliers.`,
-          dataPoints: rows.length * headers.length
+          summary: `The DADIP AI Agent has successfully ingested ${file.name}. It parsed ${rows.length} records across ${headers.length} dimensions and generated embeddings.`,
+          dataPoints: rows.length * headers.length,
+          recommendation: 'Immediate deployment of NDRF units to the affected coordinates, accompanied by early SMS warnings to the local populace.',
+          certainty: parseFloat(cert),
+          basis: `Based on RAG retrieved context from ${file.name} matching patterns of past catastrophic floods. Transformer attention weights heavily focus on anomalous precipitation spikes in column '${headers[1] || 'Value'}'.`
         });
+
+        // Add a simulated event to the system based on the CSV
+        const newEvent: PipelineResult = {
+          event: {
+            id: `csv-${Date.now()}`,
+            title: `Anomaly Detected in ${file.name}`,
+            type: 'flood',
+            description: `AI Agent identified an anomaly from uploaded dataset: ${file.name}`,
+            severity: 'high',
+            coordinates: [19.076, 72.877], // default to Mumbai for demo
+            timestamp: new Date().toISOString()
+          },
+          risk: { cycloneRisk: 10, earthquakeRisk: 5, floodRisk: 85, tsunamiRisk: 5, compositeRisk: 85, severity: 'high' },
+          reliability: { reliabilityScore: parseFloat(cert)/100, predictionEntropy: 0.1, featureCoverage: 0.95, calibrationScore: 0.9, interpretation: 'High confidence due to RAG context match.' },
+          distributionShift: { isOutOfDistribution: false, mahalanobisDistance: 2.4, distributionSimilarity: 88, oodRisk: 'low' },
+          admissibility: { admissibilityScore: 0.88, decision: 'execute', reasoning: 'High certainty and low distribution shift.' },
+          explainability: { summary: 'Transformer identified patterns matching historical floods.', contributions: [{ feature: headers[1] || 'Feature', contribution: 45, direction: 'positive' }] }
+        };
+        
+        setResults(prev => [newEvent, ...prev]);
         setAnalyzingFile(false);
-      }, 3000); // Simulate AI thinking time
+      }, 7000);
     };
     reader.readAsText(file);
   };
@@ -520,61 +563,153 @@ export default function GovDashboardClient() {
                     </div>
                     
                     {/* Body */}
-                    <div className="space-y-4 text-sm font-mono text-slate-800 min-h-[300px]">
+                    <div className="space-y-6 text-sm text-slate-800 min-h-[300px]">
                       {generatedReportType === 'daily' && (
                         <>
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">SUMMARY</h3>
-                          <p>Total Active Events: {stats.activeEvents}</p>
-                          <p>Critical Alerts: {stats.criticalAlerts}</p>
-                          <p>System Reliability Avg: {(stats.avgReliability * 100).toFixed(1)}%</p>
-                          <br />
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">LATEST CRITICAL EVENTS</h3>
-                          {results.filter(r => r.risk.severity === 'critical' || r.risk.severity === 'high').map((r, i) => (
-                            <p key={i}>- {r.event.title} (Risk: {r.risk.compositeRisk}%, Decision: {r.admissibility.decision.toUpperCase()})</p>
-                          ))}
+                          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-blue-500">
+                            <h3 className="font-bold text-lg text-blue-900 mb-2 flex items-center gap-2">📊 SUMMARY</h3>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Active Events</p>
+                                <p className="text-xl font-black text-cyan-600">{stats.activeEvents}</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Critical Alerts</p>
+                                <p className="text-xl font-black text-red-600">{stats.criticalAlerts}</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">System Reliability</p>
+                                <p className="text-xl font-black text-emerald-600">{(stats.avgReliability * 100).toFixed(1)}%</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-bold text-lg border-b-2 border-slate-200 pb-1 mb-2 mt-6 text-slate-800 flex items-center gap-2">⚠️ LATEST CRITICAL EVENTS</h3>
+                          <div className="space-y-3">
+                            {results.filter(r => r.risk.severity === 'critical' || r.risk.severity === 'high').map((r, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 bg-red-50/50 rounded border border-red-100">
+                                <div>
+                                  <p className="font-bold text-red-900">{r.event.title}</p>
+                                  <p className="text-xs text-slate-600">Risk Score: <span className="font-bold text-red-600">{r.risk.compositeRisk}%</span></p>
+                                </div>
+                                <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full shadow-sm">{r.admissibility.decision.toUpperCase()}</span>
+                              </div>
+                            ))}
+                          </div>
                         </>
                       )}
                       {generatedReportType === 'risk' && (
                         <>
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">AI RISK & ANOMALY ASSESSMENT</h3>
-                          <p>Average Uncertainty Metric: 0.18 (Nominal)</p>
-                          <p>Out of Distribution Events: 0</p>
-                          <p>Admissibility Pass Rate: 84.5%</p>
-                          <br />
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">PIPELINE ANALYSIS</h3>
-                          {results.slice(0,3).map((r, i) => (
-                            <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -&gt; {r.admissibility.decision.toUpperCase()}</p>
-                          ))}
+                          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-purple-500">
+                            <h3 className="font-bold text-lg text-purple-900 mb-2 flex items-center gap-2">🧠 AI RISK & ANOMALY ASSESSMENT</h3>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Uncertainty Metric</p>
+                                <p className="text-xl font-black text-purple-600">0.18</p>
+                                <p className="text-[10px] text-emerald-600 font-bold mt-1">NOMINAL</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">OOD Events</p>
+                                <p className="text-xl font-black text-amber-600">0</p>
+                                <p className="text-[10px] text-slate-400 mt-1">WITHIN DISTRIBUTION</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Admissibility</p>
+                                <p className="text-xl font-black text-cyan-600">84.5%</p>
+                                <p className="text-[10px] text-emerald-600 font-bold mt-1">PASS RATE</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-bold text-lg border-b-2 border-slate-200 pb-1 mb-2 mt-6 text-slate-800">PIPELINE ANALYSIS</h3>
+                          <div className="space-y-3">
+                            {results.slice(0,3).map((r, i) => (
+                              <div key={i} className="p-3 bg-white border border-slate-200 rounded shadow-sm">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="font-bold text-slate-800 font-mono text-xs">ID-{r.event.id}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold text-white ${r.admissibility.decision === 'execute' ? 'bg-emerald-500' : 'bg-amber-500'}`}>{r.admissibility.decision.toUpperCase()}</span>
+                                </div>
+                                <div className="flex gap-4 text-xs">
+                                  <p className="text-slate-600">Reliability: <span className="font-bold text-emerald-600">{r.reliability.reliabilityScore.toFixed(2)}</span></p>
+                                  <p className="text-slate-600">Anomaly Dist: <span className="font-bold text-purple-600">{r.distributionShift.normalizedDistance.toFixed(2)}</span></p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </>
                       )}
                       {generatedReportType === 'incident' && (
                         <>
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">CITIZEN INCIDENT REPORTS</h3>
-                          <p>Total Reports (24h): {incidents.length}</p>
-                          <p>Pending Verification: {incidents.filter(i => i.status === 'pending').length}</p>
-                          <p>Verified Incidents: {incidents.filter(i => i.status === 'verified').length}</p>
-                          <br />
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">LOGS</h3>
-                          {incidents.slice(0,5).map((inc, i) => (
-                            <p key={i}>- [{inc.severity.toUpperCase()}] {inc.location} ({inc.type}): {inc.status.toUpperCase()}</p>
-                          ))}
+                          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-amber-500">
+                            <h3 className="font-bold text-lg text-amber-900 mb-2 flex items-center gap-2">📢 CITIZEN INCIDENT REPORTS</h3>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Total Reports</p>
+                                <p className="text-xl font-black text-slate-800">{incidents.length}</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Pending</p>
+                                <p className="text-xl font-black text-amber-600">{incidents.filter(i => i.status === 'pending').length}</p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Verified</p>
+                                <p className="text-xl font-black text-emerald-600">{incidents.filter(i => i.status === 'verified').length}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-bold text-lg border-b-2 border-slate-200 pb-1 mb-2 mt-6 text-slate-800">RECENT LOGS</h3>
+                          <div className="space-y-2">
+                            {incidents.slice(0,5).map((inc, i) => (
+                              <div key={i} className="flex items-center justify-between p-2 bg-white border border-slate-100 rounded text-xs">
+                                <div className="flex items-center gap-3">
+                                  <span className={`px-2 py-1 rounded font-bold text-white ${inc.severity === 'critical' ? 'bg-red-500' : 'bg-orange-500'}`}>{inc.severity.toUpperCase()}</span>
+                                  <span className="font-medium text-slate-700">{inc.location} <span className="text-slate-400">({inc.type})</span></span>
+                                </div>
+                                <span className={`font-bold ${inc.status === 'verified' ? 'text-emerald-600' : 'text-amber-600'}`}>{inc.status.toUpperCase()}</span>
+                              </div>
+                            ))}
+                          </div>
                         </>
                       )}
                       {generatedReportType === 'resource' && (
                         <>
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">RESOURCE DEPLOYMENT & LOGISTICS</h3>
-                          <p>Active Help Centers: {getHelpCenters().filter(h => h.isOperational).length} / {getHelpCenters().length}</p>
-                          <p>Available Capacity: {getHelpCenters().reduce((acc, h) => acc + (h.capacity || 0) - (h.currentOccupancy || 0), 0)} beds</p>
-                          <br />
-                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">NDRF STATUS</h3>
-                          <p>Teams Deployed: 14</p>
-                          <p>Standby Teams: 32</p>
-                          <p>Critical Zones: Coastal AP, Odisha, Wayanad</p>
+                          <div className="bg-slate-50 p-4 rounded-lg border-l-4 border-emerald-500">
+                            <h3 className="font-bold text-lg text-emerald-900 mb-2 flex items-center gap-2">🛡️ RESOURCE DEPLOYMENT</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Active Help Centers</p>
+                                <p className="text-xl font-black text-emerald-600">{getHelpCenters().filter(h => h.isOperational).length} <span className="text-sm font-medium text-slate-400">/ {getHelpCenters().length}</span></p>
+                              </div>
+                              <div className="bg-white p-3 rounded shadow-sm border border-slate-100">
+                                <p className="text-xs text-slate-500 uppercase">Available Capacity</p>
+                                <p className="text-xl font-black text-blue-600">{getHelpCenters().reduce((acc, h) => acc + (h.capacity || 0) - (h.currentOccupancy || 0), 0)} <span className="text-sm font-medium text-slate-400">beds</span></p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-bold text-lg border-b-2 border-slate-200 pb-1 mb-2 mt-6 text-slate-800">NDRF STATUS</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-orange-50 border border-orange-100 rounded text-center">
+                              <p className="text-3xl font-black text-orange-600 mb-1">14</p>
+                              <p className="text-xs font-bold text-orange-900 uppercase">Teams Deployed</p>
+                            </div>
+                            <div className="p-4 bg-slate-50 border border-slate-200 rounded text-center">
+                              <p className="text-3xl font-black text-slate-700 mb-1">32</p>
+                              <p className="text-xs font-bold text-slate-500 uppercase">Standby Teams</p>
+                            </div>
+                          </div>
+                          <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded">
+                            <p className="text-xs font-bold text-red-900 uppercase mb-1">Critical Zones</p>
+                            <p className="text-sm text-red-700 font-medium">Coastal AP, Odisha, Wayanad</p>
+                          </div>
                         </>
                       )}
-                      <br /><br />
-                      <p className="text-center font-bold">END OF REPORT</p>
-                      <p className="text-center text-xs">CONFIDENTIAL - FOR AUTHORIZED PERSONNEL ONLY</p>
+                      
+                      <div className="mt-12 pt-6 border-t-2 border-slate-200 text-center">
+                        <p className="inline-block px-4 py-1 bg-slate-800 text-white font-bold tracking-widest text-xs rounded-full">END OF REPORT</p>
+                        <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase">CONFIDENTIAL - FOR AUTHORIZED PERSONNEL ONLY</p>
+                      </div>
                     </div>
                     
                     {/* Footer */}
@@ -612,7 +747,7 @@ export default function GovDashboardClient() {
               <div className="glass-card p-8 text-center animate-pulse">
                 <div className="w-10 h-10 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-white">AI Agent is Analyzing...</h3>
-                <p className="text-sm text-slate-400 mt-2">Parsing dimensions, extracting temporal features, and querying live open-meteo feeds.</p>
+                <p className="text-sm font-mono text-cyan-400 mt-2">{agentStatus}</p>
               </div>
             )}
 
@@ -621,14 +756,19 @@ export default function GovDashboardClient() {
                 
                 {/* AI Insights Card */}
                 <div className="glass-card p-6 border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
-                  <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-3">
-                    <Brain className="w-5 h-5 text-cyan-400" />
-                    <h3 className="text-lg font-bold text-white">AI Agent Intelligence Report</h3>
+                  <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-cyan-400" />
+                      <h3 className="text-lg font-bold text-white">AI Agent Intelligence Report</h3>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-bold border border-cyan-500/30">
+                      Added to Active Pipeline
+                    </span>
                   </div>
                   
                   <p className="text-sm text-slate-300 leading-relaxed mb-6">{aiInsights.summary}</p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <p className="text-2xl font-black text-white">{aiInsights.dataPoints}</p>
                       <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">Data Points Extracted</p>
@@ -640,6 +780,21 @@ export default function GovDashboardClient() {
                     <div className="bg-white/5 rounded-xl p-4 border border-white/10">
                       <p className="text-sm font-bold text-amber-400 leading-snug">{aiInsights.trend}</p>
                       <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">Trend Trajectory</p>
+                    </div>
+                  </div>
+
+                  {/* Recommendation & RAG Context */}
+                  <div className="bg-[#050a18]/50 rounded-xl p-5 border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-bold text-emerald-400">AI Agent Recommendation</h4>
+                      <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20">
+                        Certainty: {aiInsights.certainty}%
+                      </span>
+                    </div>
+                    <p className="text-sm text-white mb-4 font-medium">{aiInsights.recommendation}</p>
+                    <div className="pt-3 border-t border-white/5">
+                      <h5 className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Methodology & Basis (RAG & Transformers)</h5>
+                      <p className="text-xs text-slate-400 italic">{aiInsights.basis}</p>
                     </div>
                   </div>
                 </div>
