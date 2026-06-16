@@ -97,7 +97,7 @@ async def analyze_dataset(file: UploadFile = File(...)):
         "reliability": { "reliabilityScore": cert/100.0, "predictionEntropy": 0.1, "featureCoverage": 0.95, "calibrationScore": 0.9, "interpretation": "High confidence due to Python Agent RAG context match." },
         "distributionShift": { "isOutOfDistribution": False, "mahalanobisDistance": 2.4, "distributionSimilarity": 88, "oodRisk": "low", "normalizedDistance": 1.2, "oodScore": 0.1 },
         "admissibility": { "admissibilityScore": 0.88, "decision": "execute", "reasoning": "High certainty and low distribution shift computed by Python Agent.", "threshold": 0.8, "reliability": 0.9, "normalizedMahalanobis": 1.2, "confidence": "high" },
-        "explainability": { "summary": "Transformer identified patterns matching historical floods.", "contributions": [{ "feature": feature_col, "contribution": 45, "direction": "positive" }] }
+        "explainability": { "summary": "Transformer identified patterns matching historical floods.", "contributions": [{ "feature": feature_col, "contribution": 45, "direction": "positive", "value": 100 }] }
     }
 
     return {
