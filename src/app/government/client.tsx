@@ -18,6 +18,8 @@ export default function GovDashboardClient() {
   const [sendingAlert, setSendingAlert] = useState(false);
   const [alertSent, setAlertSent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<PipelineResult | null>(null);
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [generatedReportType, setGeneratedReportType] = useState<string | null>(null);
   const trendData = generateTrendData(24);
   const incidents = getIncidentReports();
 
@@ -365,14 +367,24 @@ export default function GovDashboardClient() {
         {tab === 'reports' && (
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             <h2 className="text-lg font-bold text-white">📊 Generate Reports</h2>
+            
+            {/* Report Generation UI */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { title: 'Daily Situation Report', desc: 'Summary of all active events, alerts, and decisions', icon: FileText },
-                { title: 'Risk Assessment Report', desc: 'Detailed AI analysis with reliability and admissibility', icon: Brain },
-                { title: 'Incident Summary', desc: 'All citizen reports with verification status', icon: Users },
-                { title: 'Resource Deployment', desc: 'NDRF/SDRF deployment status and help center capacity', icon: Shield },
+                { id: 'daily', title: 'Daily Situation Report', desc: 'Summary of all active events, alerts, and decisions', icon: FileText },
+                { id: 'risk', title: 'Risk Assessment Report', desc: 'Detailed AI analysis with reliability and admissibility', icon: Brain },
+                { id: 'incident', title: 'Incident Summary', desc: 'All citizen reports with verification status', icon: Users },
+                { id: 'resource', title: 'Resource Deployment', desc: 'NDRF/SDRF deployment status and help center capacity', icon: Shield },
               ].map((r, i) => (
-                <button key={i} className="glass-card p-5 text-left hover:bg-white/[0.04] transition-all group">
+                <button key={i} onClick={() => {
+                  setGeneratingReport(true);
+                  setGeneratedReportType(null);
+                  setTimeout(() => {
+                    setGeneratingReport(false);
+                    setGeneratedReportType(r.id);
+                  }, 2000);
+                }} className="glass-card p-5 text-left hover:bg-white/[0.04] transition-all group relative overflow-hidden">
+                  <div className={cn("absolute inset-0 bg-orange-500/10 -translate-x-full transition-transform duration-1000", generatingReport && generatedReportType === null && "animate-shimmer translate-x-full")} />
                   <r.icon className="w-8 h-8 text-orange-400 mb-3" />
                   <p className="text-sm font-semibold text-white">{r.title}</p>
                   <p className="text-xs text-slate-500 mt-1">{r.desc}</p>
@@ -380,6 +392,87 @@ export default function GovDashboardClient() {
                 </button>
               ))}
             </div>
+
+            {/* Generated Report Viewer */}
+            {generatingReport && <div className="text-center p-8"><div className="w-8 h-8 border-2 border-orange-500/30 border-t-orange-500 rounded-full animate-spin mx-auto mb-3" /><p className="text-sm text-slate-400">Compiling data and generating report...</p></div>}
+            
+            {!generatingReport && generatedReportType && (
+              <div className="glass-card p-8 mt-8 border-orange-500/30 shadow-[0_0_30px_rgba(249,115,22,0.1)]">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white uppercase tracking-widest">
+                      {generatedReportType === 'daily' ? 'Daily Situation Report' : generatedReportType === 'risk' ? 'Risk Assessment Report' : generatedReportType === 'incident' ? 'Incident Summary Report' : 'Resource Deployment Report'}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">Generated: {new Date().toLocaleString('en-IN')}</p>
+                  </div>
+                  <button onClick={() => window.print()} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
+                    Print / Save PDF
+                  </button>
+                </div>
+                
+                <div className="space-y-4 text-sm text-slate-300 font-mono" id="printable-report">
+                  <p>==================================================</p>
+                  <p>GOVERNMENT OF INDIA - DADIP OPERATIONS CENTER</p>
+                  <p>==================================================</p>
+                  <br />
+                  {generatedReportType === 'daily' && (
+                    <>
+                      <p>[SUMMARY]</p>
+                      <p>Total Active Events: {stats.activeEvents}</p>
+                      <p>Critical Alerts: {stats.criticalAlerts}</p>
+                      <p>System Reliability Avg: {(stats.avgReliability * 100).toFixed(1)}%</p>
+                      <br />
+                      <p>[LATEST CRITICAL EVENTS]</p>
+                      {results.filter(r => r.risk.severity === 'critical' || r.risk.severity === 'high').map((r, i) => (
+                        <p key={i}>- {r.event.title} (Risk: {r.risk.compositeRisk}%, Decision: {r.admissibility.decision.toUpperCase()})</p>
+                      ))}
+                    </>
+                  )}
+                  {generatedReportType === 'risk' && (
+                    <>
+                      <p>[AI RISK & ANOMALY ASSESSMENT]</p>
+                      <p>Average Uncertainty Metric: 0.18 (Nominal)</p>
+                      <p>Out of Distribution Events: 0</p>
+                      <p>Admissibility Pass Rate: 84.5%</p>
+                      <br />
+                      <p>[PIPELINE ANALYSIS]</p>
+                      {results.slice(0,3).map((r, i) => (
+                        <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -> {r.admissibility.decision}</p>
+                      ))}
+                    </>
+                  )}
+                  {generatedReportType === 'incident' && (
+                    <>
+                      <p>[CITIZEN INCIDENT REPORTS]</p>
+                      <p>Total Reports (24h): {incidents.length}</p>
+                      <p>Pending Verification: {incidents.filter(i => i.status === 'pending').length}</p>
+                      <p>Verified Incidents: {incidents.filter(i => i.status === 'verified').length}</p>
+                      <br />
+                      <p>[LOGS]</p>
+                      {incidents.slice(0,5).map((inc, i) => (
+                        <p key={i}>- [{inc.severity.toUpperCase()}] {inc.location} ({inc.type}): {inc.status.toUpperCase()}</p>
+                      ))}
+                    </>
+                  )}
+                  {generatedReportType === 'resource' && (
+                    <>
+                      <p>[RESOURCE DEPLOYMENT & LOGISTICS]</p>
+                      <p>Active Help Centers: {getHelpCenters().filter(h => h.isOperational).length} / {getHelpCenters().length}</p>
+                      <p>Available Capacity: {getHelpCenters().reduce((acc, h) => acc + (h.capacity || 0) - (h.currentOccupancy || 0), 0)} beds</p>
+                      <br />
+                      <p>[NDRF STATUS]</p>
+                      <p>Teams Deployed: 14</p>
+                      <p>Standby Teams: 32</p>
+                      <p>Critical Zones: Coastal AP, Odisha, Wayanad</p>
+                    </>
+                  )}
+                  <br />
+                  <p>==================================================</p>
+                  <p>END OF REPORT</p>
+                  <p>CONFIDENTIAL - FOR AUTHORIZED PERSONNEL ONLY</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
