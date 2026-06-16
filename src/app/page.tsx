@@ -89,7 +89,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 p-1">
                   <div className="w-full h-full rounded-full overflow-hidden bg-[#050a18] flex items-center justify-center relative">
-                    <img src="/megavarshan.jpg" alt="Megavarshan A" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                    <img src="/megavarshan.jpeg" alt="Megavarshan A" className="absolute inset-0 w-full h-full object-cover z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                     <Users className="w-8 h-8 text-cyan-400 absolute z-0" />
                   </div>
                 </div>
