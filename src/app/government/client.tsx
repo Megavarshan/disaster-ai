@@ -133,7 +133,7 @@ export default function GovDashboardClient() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead><tr className="text-slate-500 text-left border-b border-white/5">
-                    <th className="pb-2 pr-4">Event</th><th className="pb-2 pr-4">Type</th><th className="pb-2 pr-4">Risk</th><th className="pb-2 pr-4">Reliability</th><th className="pb-2 pr-4">Mahalanobis</th><th className="pb-2 pr-4">Admissibility</th><th className="pb-2">Decision</th>
+                    <th className="pb-2 pr-4">Event</th><th className="pb-2 pr-4">Type</th><th className="pb-2 pr-4">Risk</th><th className="pb-2 pr-4">Reliability</th><th className="pb-2 pr-4">Anomaly Metric</th><th className="pb-2 pr-4">Admissibility</th><th className="pb-2">Decision</th>
                   </tr></thead>
                   <tbody>
                     {results.slice(0, 12).map(r => {
@@ -173,7 +173,7 @@ export default function GovDashboardClient() {
                 {[
                   { label: 'Risk Score', value: `${selectedEvent.risk.compositeRisk}%`, color: selectedEvent.risk.compositeRisk >= 60 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
                   { label: 'Reliability', value: `${(selectedEvent.reliability.reliabilityScore * 100).toFixed(0)}%`, color: selectedEvent.reliability.reliabilityScore >= 0.7 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                  { label: 'Mahalanobis', value: selectedEvent.distributionShift.normalizedDistance.toFixed(3), color: selectedEvent.distributionShift.normalizedDistance < 0.3 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
+                  { label: 'Anomaly Metric', value: selectedEvent.distributionShift.normalizedDistance.toFixed(3), color: selectedEvent.distributionShift.normalizedDistance < 0.3 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 'text-orange-400 bg-orange-500/10 border-orange-500/20' },
                   { label: 'Admissibility', value: selectedEvent.admissibility.admissibilityScore.toFixed(2), color: selectedEvent.admissibility.admissibilityScore >= 0.55 ? 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20' },
                 ].map((stage, i) => (
                   <div key={i} className="flex items-center gap-2 flex-shrink-0">
@@ -243,7 +243,7 @@ export default function GovDashboardClient() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center">
                     <p className="text-2xl font-bold text-purple-400">{selectedEvent.distributionShift.mahalanobisDistance.toFixed(2)}</p>
-                    <p className="text-[10px] text-slate-400 mt-1">Mahalanobis Distance</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Anomaly Distance</p>
                   </div>
                   <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 text-center">
                     <p className="text-2xl font-bold text-cyan-400">{selectedEvent.distributionShift.distributionSimilarity}%</p>
