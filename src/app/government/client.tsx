@@ -88,6 +88,10 @@ export default function GovDashboardClient() {
             type: 'flood',
             description: `AI Agent identified an anomaly from uploaded dataset: ${file.name}`,
             severity: 'high',
+            latitude: 19.076,
+            longitude: 72.877,
+            source: 'ai_agent',
+            status: 'active',
             timestamp: new Date()
           },
           risk: { cycloneRisk: 10, earthquakeRisk: 5, floodRisk: 85, tsunamiRisk: 5, compositeRisk: 85, severity: 'high' },
