@@ -89,7 +89,7 @@ export default function GovDashboardClient() {
             description: `AI Agent identified an anomaly from uploaded dataset: ${file.name}`,
             severity: 'high',
             coordinates: [19.076, 72.877], // default to Mumbai for demo
-            timestamp: new Date().toISOString()
+            timestamp: new Date()
           },
           risk: { cycloneRisk: 10, earthquakeRisk: 5, floodRisk: 85, tsunamiRisk: 5, compositeRisk: 85, severity: 'high' },
           reliability: { reliabilityScore: parseFloat(cert)/100, predictionEntropy: 0.1, featureCoverage: 0.95, calibrationScore: 0.9, interpretation: 'High confidence due to RAG context match.' },
