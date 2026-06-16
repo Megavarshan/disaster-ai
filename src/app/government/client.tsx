@@ -437,7 +437,7 @@ export default function GovDashboardClient() {
                       <br />
                       <p>[PIPELINE ANALYSIS]</p>
                       {results.slice(0,3).map((r, i) => (
-                        <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -> {r.admissibility.decision}</p>
+                        <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -&gt; {r.admissibility.decision}</p>
                       ))}
                     </>
                   )}
