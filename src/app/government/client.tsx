@@ -452,73 +452,98 @@ export default function GovDashboardClient() {
                     <h3 className="text-xl font-bold text-white uppercase tracking-widest">
                       {generatedReportType === 'daily' ? 'Daily Situation Report' : generatedReportType === 'risk' ? 'Risk Assessment Report' : generatedReportType === 'incident' ? 'Incident Summary Report' : 'Resource Deployment Report'}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1">Generated: {new Date().toLocaleString('en-IN')}</p>
                   </div>
-                  <button onClick={() => window.print()} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
-                    Print / Save PDF
+                  <button onClick={async () => {
+                    const html2pdf = (await import('html2pdf.js')).default;
+                    const element = document.getElementById('printable-report-container');
+                    const opt = {
+                      margin: 15,
+                      filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
+                      image: { type: 'jpeg', quality: 0.98 },
+                      html2canvas: { scale: 2 },
+                      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(element).save();
+                  }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
+                    Download Official PDF
                   </button>
                 </div>
                 
-                <div className="space-y-4 text-sm text-slate-300 font-mono" id="printable-report">
-                  <p>==================================================</p>
-                  <p>GOVERNMENT OF INDIA - DADIP OPERATIONS CENTER</p>
-                  <p>==================================================</p>
-                  <br />
-                  {generatedReportType === 'daily' && (
-                    <>
-                      <p>[SUMMARY]</p>
-                      <p>Total Active Events: {stats.activeEvents}</p>
-                      <p>Critical Alerts: {stats.criticalAlerts}</p>
-                      <p>System Reliability Avg: {(stats.avgReliability * 100).toFixed(1)}%</p>
-                      <br />
-                      <p>[LATEST CRITICAL EVENTS]</p>
-                      {results.filter(r => r.risk.severity === 'critical' || r.risk.severity === 'high').map((r, i) => (
-                        <p key={i}>- {r.event.title} (Risk: {r.risk.compositeRisk}%, Decision: {r.admissibility.decision.toUpperCase()})</p>
-                      ))}
-                    </>
-                  )}
-                  {generatedReportType === 'risk' && (
-                    <>
-                      <p>[AI RISK & ANOMALY ASSESSMENT]</p>
-                      <p>Average Uncertainty Metric: 0.18 (Nominal)</p>
-                      <p>Out of Distribution Events: 0</p>
-                      <p>Admissibility Pass Rate: 84.5%</p>
-                      <br />
-                      <p>[PIPELINE ANALYSIS]</p>
-                      {results.slice(0,3).map((r, i) => (
-                        <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -&gt; {r.admissibility.decision}</p>
-                      ))}
-                    </>
-                  )}
-                  {generatedReportType === 'incident' && (
-                    <>
-                      <p>[CITIZEN INCIDENT REPORTS]</p>
-                      <p>Total Reports (24h): {incidents.length}</p>
-                      <p>Pending Verification: {incidents.filter(i => i.status === 'pending').length}</p>
-                      <p>Verified Incidents: {incidents.filter(i => i.status === 'verified').length}</p>
-                      <br />
-                      <p>[LOGS]</p>
-                      {incidents.slice(0,5).map((inc, i) => (
-                        <p key={i}>- [{inc.severity.toUpperCase()}] {inc.location} ({inc.type}): {inc.status.toUpperCase()}</p>
-                      ))}
-                    </>
-                  )}
-                  {generatedReportType === 'resource' && (
-                    <>
-                      <p>[RESOURCE DEPLOYMENT & LOGISTICS]</p>
-                      <p>Active Help Centers: {getHelpCenters().filter(h => h.isOperational).length} / {getHelpCenters().length}</p>
-                      <p>Available Capacity: {getHelpCenters().reduce((acc, h) => acc + (h.capacity || 0) - (h.currentOccupancy || 0), 0)} beds</p>
-                      <br />
-                      <p>[NDRF STATUS]</p>
-                      <p>Teams Deployed: 14</p>
-                      <p>Standby Teams: 32</p>
-                      <p>Critical Zones: Coastal AP, Odisha, Wayanad</p>
-                    </>
-                  )}
-                  <br />
-                  <p>==================================================</p>
-                  <p>END OF REPORT</p>
-                  <p>CONFIDENTIAL - FOR AUTHORIZED PERSONNEL ONLY</p>
+                {/* The actual preview/pdf container */}
+                <div className="bg-white rounded-xl overflow-hidden">
+                  <div id="printable-report-container" className="p-8 text-black bg-white">
+                    {/* Header / Letterhead */}
+                    <div className="text-center border-b-2 border-black pb-4 mb-6">
+                      <h1 className="text-xl sm:text-2xl font-black uppercase tracking-widest mb-1 text-slate-900">Decision-Admissibility Disaster Intelligence Platform (DADIP)</h1>
+                      <h2 className="text-lg font-bold text-slate-800">Government of India - Operations Center</h2>
+                      <p className="text-sm mt-2 text-slate-600 font-medium">Date Generated: {new Date().toLocaleString('en-IN')}</p>
+                    </div>
+                    
+                    {/* Body */}
+                    <div className="space-y-4 text-sm font-mono text-slate-800 min-h-[300px]">
+                      {generatedReportType === 'daily' && (
+                        <>
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">SUMMARY</h3>
+                          <p>Total Active Events: {stats.activeEvents}</p>
+                          <p>Critical Alerts: {stats.criticalAlerts}</p>
+                          <p>System Reliability Avg: {(stats.avgReliability * 100).toFixed(1)}%</p>
+                          <br />
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">LATEST CRITICAL EVENTS</h3>
+                          {results.filter(r => r.risk.severity === 'critical' || r.risk.severity === 'high').map((r, i) => (
+                            <p key={i}>- {r.event.title} (Risk: {r.risk.compositeRisk}%, Decision: {r.admissibility.decision.toUpperCase()})</p>
+                          ))}
+                        </>
+                      )}
+                      {generatedReportType === 'risk' && (
+                        <>
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">AI RISK & ANOMALY ASSESSMENT</h3>
+                          <p>Average Uncertainty Metric: 0.18 (Nominal)</p>
+                          <p>Out of Distribution Events: 0</p>
+                          <p>Admissibility Pass Rate: 84.5%</p>
+                          <br />
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">PIPELINE ANALYSIS</h3>
+                          {results.slice(0,3).map((r, i) => (
+                            <p key={i}>ID-{r.event.id}: Rel={r.reliability.reliabilityScore.toFixed(2)}, Anomaly={r.distributionShift.normalizedDistance.toFixed(2)} -&gt; {r.admissibility.decision.toUpperCase()}</p>
+                          ))}
+                        </>
+                      )}
+                      {generatedReportType === 'incident' && (
+                        <>
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">CITIZEN INCIDENT REPORTS</h3>
+                          <p>Total Reports (24h): {incidents.length}</p>
+                          <p>Pending Verification: {incidents.filter(i => i.status === 'pending').length}</p>
+                          <p>Verified Incidents: {incidents.filter(i => i.status === 'verified').length}</p>
+                          <br />
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">LOGS</h3>
+                          {incidents.slice(0,5).map((inc, i) => (
+                            <p key={i}>- [{inc.severity.toUpperCase()}] {inc.location} ({inc.type}): {inc.status.toUpperCase()}</p>
+                          ))}
+                        </>
+                      )}
+                      {generatedReportType === 'resource' && (
+                        <>
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">RESOURCE DEPLOYMENT & LOGISTICS</h3>
+                          <p>Active Help Centers: {getHelpCenters().filter(h => h.isOperational).length} / {getHelpCenters().length}</p>
+                          <p>Available Capacity: {getHelpCenters().reduce((acc, h) => acc + (h.capacity || 0) - (h.currentOccupancy || 0), 0)} beds</p>
+                          <br />
+                          <h3 className="font-bold text-lg border-b border-slate-300 pb-1 mb-2">NDRF STATUS</h3>
+                          <p>Teams Deployed: 14</p>
+                          <p>Standby Teams: 32</p>
+                          <p>Critical Zones: Coastal AP, Odisha, Wayanad</p>
+                        </>
+                      )}
+                      <br /><br />
+                      <p className="text-center font-bold">END OF REPORT</p>
+                      <p className="text-center text-xs">CONFIDENTIAL - FOR AUTHORIZED PERSONNEL ONLY</p>
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="mt-12 pt-4 border-t-2 border-black text-center text-sm text-slate-800">
+                      <p className="font-bold text-lg mb-1">Developed by Megavarshan with love ❤️ for India 🇮🇳</p>
+                      <p className="font-medium">LinkedIn: <a href="https://linkedin.com/in/megavarshan" className="text-blue-600">linkedin.com/in/megavarshan</a></p>
+                      <p className="font-medium">GitHub: <a href="https://github.com/Megavarshan" className="text-blue-600">github.com/Megavarshan</a></p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

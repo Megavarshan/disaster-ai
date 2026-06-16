@@ -38,14 +38,11 @@ export default function AboutPage() {
                 <a href="https://github.com/Megavarshan" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white transition bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <span>🔗</span> GitHub
                 </a>
-                <a href="#" className="flex items-center gap-2 hover:text-white transition bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                <a href="https://linkedin.com/in/megavarshan" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white transition bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   <span>🔗</span> LinkedIn
                 </a>
-                <a href="mailto:contact@example.com" className="flex items-center gap-2 hover:text-white transition bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                  <Mail className="w-4 h-4" /> Contact
-                </a>
-                <a href="#" className="flex items-center gap-2 hover:text-white transition bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
-                  <ExternalLink className="w-4 h-4" /> View Resume
+                <a href="/resume.pdf" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white transition bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg">
+                  <ExternalLink className="w-4 h-4" /> View / Download Resume
                 </a>
               </div>
             </div>
