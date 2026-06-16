@@ -463,7 +463,9 @@ export default function GovDashboardClient() {
                       html2canvas: { scale: 2 },
                       jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                     };
-                    html2pdf().set(opt).from(element).save();
+                    if (element) {
+                      html2pdf().set(opt).from(element).save();
+                    }
                   }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
                     Download Official PDF
                   </button>
