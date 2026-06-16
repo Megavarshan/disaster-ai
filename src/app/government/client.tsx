@@ -88,7 +88,6 @@ export default function GovDashboardClient() {
             type: 'flood',
             description: `AI Agent identified an anomaly from uploaded dataset: ${file.name}`,
             severity: 'high',
-            coordinates: [19.076, 72.877], // default to Mumbai for demo
             timestamp: new Date()
           },
           risk: { cycloneRisk: 10, earthquakeRisk: 5, floodRisk: 85, tsunamiRisk: 5, compositeRisk: 85, severity: 'high' },
