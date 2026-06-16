@@ -90,7 +90,7 @@ export default function GovDashboardClient() {
             severity: 'high',
             latitude: 19.076,
             longitude: 72.877,
-            source: 'ai_agent',
+            source: 'ndem.nrsc.gov.in',
             status: 'active',
             timestamp: new Date()
           },
