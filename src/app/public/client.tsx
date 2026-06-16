@@ -18,7 +18,7 @@ export default function PublicDashboardClient() {
   const [lang, setLang] = useState<Language>('en');
   const [tab, setTab] = useState<'warnings' | 'report' | 'help' | 'safety'>('warnings');
   const [isListening, setIsListening] = useState(false);
-  const [reportForm, setReportForm] = useState({ name: '', phone: '', type: 'flood' as DisasterType, description: '', location: '', latitude: 13.0, longitude: 80.0, severity: 'moderate' as const });
+  const [reportForm, setReportForm] = useState({ name: '', phone: '', type: 'flood' as DisasterType, description: '', location: '', latitude: 13.0, longitude: 80.0, severity: 'moderate' as 'low' | 'moderate' | 'high' | 'critical' });
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const helpCenters = getHelpCenters();
   const incidents = getIncidentReports();
