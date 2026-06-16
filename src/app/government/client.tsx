@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Shield, AlertTriangle, Activity, BarChart3, Brain, Send, ArrowLeft, ArrowRight, CheckCircle, XCircle, Clock, MessageSquare, Phone, Users, FileText, TrendingDown } from 'lucide-react';
+import { Shield, AlertTriangle, Activity, BarChart3, Brain, Send, ArrowLeft, ArrowRight, CheckCircle, XCircle, Clock, MessageSquare, Phone, Users, FileText, TrendingDown, Bot, Download } from 'lucide-react';
 import { cn, getDisasterIcon, getSeverityBg, getSeverityColor, timeAgo, getDecisionStyles, getAlertLevelColor } from '@/lib/utils';
 import { fetchAndProcessAll, computeStats, generateTrendData, getIncidentReports, updateIncidentStatus, getHelpCenters } from '@/lib/services';
 import type { PipelineResult } from '@/lib/types';
@@ -19,7 +19,7 @@ export default function GovDashboardClient() {
 
   const [results, setResults] = useState<PipelineResult[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'overview' | 'analysis' | 'alerts' | 'incidents' | 'reports' | 'upload'>('overview');
+  const [tab, setTab] = useState<'overview' | 'analysis' | 'alerts' | 'incidents' | 'reports' | 'upload' | 'aura'>('overview');
   const [sendingAlert, setSendingAlert] = useState(false);
   const [alertSent, setAlertSent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<PipelineResult | null>(null);
@@ -39,6 +39,13 @@ export default function GovDashboardClient() {
     certainty: number,
     basis: string
   } | null>(null);
+
+  // AURA Chat State
+  const [chatMessages, setChatMessages] = useState<{role: 'user' | 'aura', content: string, artifact?: any}[]>([
+    { role: 'aura', content: "Hello! I am AURA (Autonomous Unified Response Agent). I am connected to the live SQLite disaster database and transformer models. How can I assist you?" }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAuraTyping, setIsAuraTyping] = useState(false);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -130,6 +137,45 @@ export default function GovDashboardClient() {
     }
   };
 
+  const handleAuraSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMsg = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setIsAuraTyping(true);
+
+    try {
+      const res = await fetch('http://localhost:8001/aura/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg })
+      });
+      const data = await res.json();
+      setChatMessages(prev => [...prev, { role: 'aura', content: data.text, artifact: data.artifact }]);
+    } catch (err) {
+      // Fallback simulation if Python server isn't running
+      setTimeout(() => {
+        setChatMessages(prev => [...prev, { 
+          role: 'aura', 
+          content: "I couldn't connect to the Python backend (is it running?). Using simulated local analysis: The situation appears nominal.",
+          artifact: userMsg.toLowerCase().includes('report') ? {
+            title: "Simulated Local Report",
+            date: new Date().toLocaleString(),
+            sections: [
+              {"heading": "Executive Summary", "content": "Simulated local report generated because the Python backend is offline."},
+              {"heading": "Recommendation", "content": "Please start the Python API using `python agent/aura_agent.py`."}
+            ],
+            data: []
+          } : undefined
+        }]);
+      }, 1500);
+    } finally {
+      setIsAuraTyping(false);
+    }
+  };
+
   if (!isAuthenticated) return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#050a18' }}>
       <div className="max-w-md w-full glass-card p-8 relative overflow-hidden">
@@ -203,6 +249,7 @@ export default function GovDashboardClient() {
             { key: 'incidents' as const, label: 'Citizen Reports', icon: Users },
             { key: 'reports' as const, label: 'Generate Reports', icon: FileText },
             { key: 'upload' as const, label: 'Custom Data & AI', icon: Activity },
+            { key: 'aura' as const, label: 'AURA Assistant', icon: Bot },
           ].map(tb => (
             <button key={tb.key} onClick={() => setTab(tb.key)} className={cn('px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 whitespace-nowrap',
               tab === tb.key ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20' : 'text-slate-400 hover:bg-white/5')}>
@@ -834,6 +881,125 @@ export default function GovDashboardClient() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {/* AURA AI ASSISTANT TAB */}
+        {tab === 'aura' && (
+          <div className="max-w-4xl mx-auto flex flex-col h-[75vh] animate-fade-in relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                <Bot className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">AURA Intelligence Agent</h2>
+                <p className="text-xs text-purple-400 font-mono">Connected to live SQLite Database</p>
+              </div>
+            </div>
+
+            {/* Chat History */}
+            <div className="flex-1 overflow-y-auto space-y-6 pb-6 pr-2 custom-scrollbar">
+              {chatMessages.map((msg, i) => (
+                <div key={i} className={cn("flex flex-col max-w-[85%]", msg.role === 'user' ? "ml-auto items-end" : "mr-auto items-start")}>
+                  <div className="flex items-center gap-2 mb-1.5 px-1">
+                    {msg.role === 'aura' ? <Bot className="w-4 h-4 text-purple-400" /> : <Users className="w-4 h-4 text-emerald-400" />}
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{msg.role === 'aura' ? 'AURA' : 'Operator'}</span>
+                  </div>
+                  
+                  {/* Text Bubble */}
+                  <div className={cn("p-4 rounded-2xl text-sm shadow-lg", msg.role === 'user' ? "bg-emerald-500/10 text-emerald-50 border border-emerald-500/20 rounded-tr-sm" : "bg-white/5 text-slate-200 border border-white/10 rounded-tl-sm")}>
+                    {msg.content}
+                  </div>
+
+                  {/* Generated Artifact */}
+                  {msg.artifact && (
+                    <div className="mt-3 w-full max-w-full glass-card p-0 overflow-hidden border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-slide-up">
+                      <div className="bg-purple-950/40 p-3 border-b border-purple-500/20 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-purple-400" />
+                          <span className="text-xs font-bold text-purple-300">Generated Report Artifact</span>
+                        </div>
+                        <button onClick={async () => {
+                          const html2pdf = (await import('html2pdf.js')).default;
+                          const element = document.getElementById(`artifact-${i}`);
+                          if (element) html2pdf().set({ margin: 15, filename: `AURA_Report_${new Date().getTime()}.pdf`, html2canvas: { scale: 2 } }).from(element).save();
+                        }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
+                          <Download className="w-3 h-3" /> Download PDF
+                        </button>
+                      </div>
+                      
+                      {/* Printable Area */}
+                      <div id={`artifact-${i}`} className="p-6 bg-white text-slate-900 max-h-[300px] overflow-y-auto">
+                        <div className="text-center border-b-2 border-slate-200 pb-4 mb-4">
+                          <h3 className="text-xl font-black uppercase text-purple-900">{msg.artifact.title}</h3>
+                          <p className="text-xs text-slate-500 font-mono mt-1">Generated: {msg.artifact.date}</p>
+                        </div>
+                        
+                        <div className="space-y-5 text-sm">
+                          {msg.artifact.sections.map((sec: any, sIdx: number) => (
+                            <div key={sIdx}>
+                              <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2 uppercase text-xs tracking-wider">{sec.heading}</h4>
+                              <p className="text-slate-600 leading-relaxed">{sec.content}</p>
+                            </div>
+                          ))}
+                          
+                          {msg.artifact.data && msg.artifact.data.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="font-bold text-slate-800 border-b border-slate-100 pb-1 mb-2 uppercase text-xs tracking-wider">Data Snapshot</h4>
+                              <table className="w-full text-xs text-left border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50">
+                                    <th className="p-2 border border-slate-200 text-slate-600">Type</th>
+                                    <th className="p-2 border border-slate-200 text-slate-600">Location</th>
+                                    <th className="p-2 border border-slate-200 text-slate-600">Risk</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {msg.artifact.data.map((row: any, rIdx: number) => (
+                                    <tr key={rIdx}>
+                                      <td className="p-2 border border-slate-200 font-medium capitalize">{row.type}</td>
+                                      <td className="p-2 border border-slate-200">{row.location}</td>
+                                      <td className="p-2 border border-slate-200 text-red-600 font-bold">{row.risk}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              
+              {isAuraTyping && (
+                <div className="flex flex-col items-start max-w-[80%]">
+                  <div className="flex items-center gap-2 mb-1.5 px-1">
+                    <Bot className="w-4 h-4 text-purple-400" />
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">AURA</span>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-white/5 border border-white/10 rounded-tl-sm flex gap-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}} />
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}} />
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}} />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handleAuraSubmit} className="mt-auto glass-card p-2 flex gap-2 border-purple-500/20">
+              <input 
+                type="text" 
+                value={chatInput} 
+                onChange={(e) => setChatInput(e.target.value)} 
+                placeholder="Ask AURA to analyze data, generate a report, or query active zones..." 
+                className="flex-1 bg-transparent border-none outline-none text-white text-sm px-4 placeholder:text-slate-500"
+              />
+              <button type="submit" disabled={isAuraTyping || !chatInput.trim()} className="w-12 h-12 rounded-xl bg-purple-500 hover:bg-purple-600 text-white flex items-center justify-center transition disabled:opacity-50 shadow-lg shadow-purple-500/25">
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
           </div>
         )}
       </div>
