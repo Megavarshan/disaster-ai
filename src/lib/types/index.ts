@@ -48,7 +48,7 @@ export const DISASTER_ICONS: Record<DisasterType, string> = {
 export type Severity = 'low' | 'moderate' | 'high' | 'critical';
 export type AlertLevel = 'green' | 'yellow' | 'orange' | 'red';
 export type DecisionAction = 'execute' | 'abstain' | 'defer';
-export type DataSource = 'usgs' | 'nasa_eonet' | 'imd' | 'incois' | 'cwc' | 'user_report' | 'openweather';
+export type DataSource = 'usgs' | 'nasa_eonet' | 'imd' | 'incois' | 'cwc' | 'user_report' | 'openweather' | 'ndem.nrsc.gov.in';
 
 // ---------- Disaster Event ----------
 export interface DisasterEvent {
