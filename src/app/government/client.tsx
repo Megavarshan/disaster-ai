@@ -559,24 +559,35 @@ export default function GovDashboardClient() {
                       const html2pdf = (mod.default ? mod.default : mod) as any;
                       const element = document.getElementById('printable-report-container');
                       if (element) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.background = 'white';
+                        tempDiv.style.color = 'black';
+                        tempDiv.style.padding = '20px';
+                        tempDiv.style.width = '800px';
+                        
+                        const clone = element.cloneNode(true) as HTMLElement;
+                        const allElements = clone.querySelectorAll('*');
+                        allElements.forEach(el => {
+                          if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
+                            el.remove();
+                          } else {
+                            el.removeAttribute('class');
+                          }
+                        });
+                        
+                        tempDiv.innerHTML = clone.innerHTML;
+                        document.body.appendChild(tempDiv);
+                        
                         const opt = {
                           margin: 15,
                           filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
                           image: { type: 'jpeg' as const, quality: 0.98 },
-                          html2canvas: { scale: 2, useCORS: true },
+                          html2canvas: { scale: 2 },
                           jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                         };
                         
-                        // Temporarily adjust styles for better PDF rendering
-                        const origMaxHeight = element.style.maxHeight;
-                        const origOverflow = element.style.overflowY;
-                        element.style.maxHeight = 'none';
-                        element.style.overflowY = 'visible';
-                        
-                        html2pdf().set(opt).from(element).save().then(() => {
-                          element.style.maxHeight = origMaxHeight;
-                          element.style.overflowY = origOverflow;
-                        });
+                        await html2pdf().set(opt).from(tempDiv).save();
+                        document.body.removeChild(tempDiv);
                       }
                     } catch (err) {
                       console.error('PDF error:', err);
@@ -909,20 +920,32 @@ export default function GovDashboardClient() {
                                 const html2pdf = (mod.default ? mod.default : mod) as any;
                                 const element = document.getElementById(`artifact-${i}`);
                                 if (element) {
-                                  // temporarily remove max-height for full capture
-                                  const origMaxHeight = element.style.maxHeight;
-                                  const origOverflow = element.style.overflowY;
-                                  element.style.maxHeight = 'none';
-                                  element.style.overflowY = 'visible';
+                                  const tempDiv = document.createElement('div');
+                                  tempDiv.style.background = 'white';
+                                  tempDiv.style.color = 'black';
+                                  tempDiv.style.padding = '20px';
+                                  tempDiv.style.width = '800px';
                                   
-                                  html2pdf().set({ margin: 15, filename: `AURA_Report_${new Date().getTime()}.pdf`, html2canvas: { scale: 2 } })
-                                    .from(element)
-                                    .save()
-                                    .then(() => {
-                                      // restore styles
-                                      element.style.maxHeight = origMaxHeight;
-                                      element.style.overflowY = origOverflow;
-                                    });
+                                  const clone = element.cloneNode(true) as HTMLElement;
+                                  const allElements = clone.querySelectorAll('*');
+                                  allElements.forEach(el => {
+                                    if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
+                                      el.remove();
+                                    } else {
+                                      el.removeAttribute('class');
+                                    }
+                                  });
+                                  
+                                  tempDiv.innerHTML = clone.innerHTML;
+                                  document.body.appendChild(tempDiv);
+                                  
+                                  await html2pdf().set({ 
+                                    margin: 15, 
+                                    filename: `AURA_Report_${new Date().getTime()}.pdf`, 
+                                    html2canvas: { scale: 2 } 
+                                  }).from(tempDiv).save();
+                                  
+                                  document.body.removeChild(tempDiv);
                                 }
                               } catch (err) {
                                 console.error('PDF error:', err);
