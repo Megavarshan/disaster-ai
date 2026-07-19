@@ -570,12 +570,11 @@ export default function GovDashboardClient() {
                           if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
                             el.remove();
                           } else if (el.className && typeof el.className === 'string') {
-                            // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
-                            el.className = el.className.split(' ').filter(c => 
-                              !c.includes('glass-card') && 
-                              !c.includes('backdrop-blur') && 
-                              !c.includes('animate-')
-                            ).join(' ');
+                            el.className = el.className.split(' ').filter(c => {
+                              if (c.match(/^w-\d+\/\d+$/)) return true; // keep width fractions
+                              if (c.includes('/') || c.includes('shadow') || c.includes('glass') || c.includes('backdrop') || c.includes('animate')) return false;
+                              return true;
+                            }).join(' ');
                           }
                         });
                         
@@ -586,16 +585,16 @@ export default function GovDashboardClient() {
                           margin: 10,
                           filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
                           image: { type: 'jpeg' as const, quality: 0.98 },
-                          html2canvas: { scale: 2, useCORS: true },
+                          html2canvas: { scale: 2, useCORS: true, logging: false },
                           jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                         };
                         
                         await html2pdf().set(opt).from(tempDiv).save();
                         document.body.removeChild(tempDiv);
                       }
-                    } catch (err) {
+                    } catch (err: any) {
                       console.error('PDF error:', err);
-                      alert('Could not generate PDF. Check console.');
+                      alert('PDF Error: ' + (err.message || err.toString()));
                     }
                   }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
                     Download Official PDF
@@ -935,12 +934,11 @@ export default function GovDashboardClient() {
                                     if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
                                       el.remove();
                                     } else if (el.className && typeof el.className === 'string') {
-                                      // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
-                                      el.className = el.className.split(' ').filter(c => 
-                                        !c.includes('glass-card') && 
-                                        !c.includes('backdrop-blur') && 
-                                        !c.includes('animate-')
-                                      ).join(' ');
+                                      el.className = el.className.split(' ').filter(c => {
+                                        if (c.match(/^w-\d+\/\d+$/)) return true; // keep width fractions
+                                        if (c.includes('/') || c.includes('shadow') || c.includes('glass') || c.includes('backdrop') || c.includes('animate')) return false;
+                                        return true;
+                                      }).join(' ');
                                     }
                                   });
                                   
@@ -951,15 +949,15 @@ export default function GovDashboardClient() {
                                     margin: 10, 
                                     filename: `AURA_Report_${new Date().getTime()}.pdf`, 
                                     image: { type: 'jpeg' as const, quality: 0.98 },
-                                    html2canvas: { scale: 2, useCORS: true },
+                                    html2canvas: { scale: 2, useCORS: true, logging: false },
                                     jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                                   }).from(tempDiv).save();
                                   
                                   document.body.removeChild(tempDiv);
                                 }
-                              } catch (err) {
+                              } catch (err: any) {
                                 console.error('PDF error:', err);
-                                alert('Could not generate PDF. Check console.');
+                                alert('PDF Error: ' + (err.message || err.toString()));
                               }
                             }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
                               <Download className="w-3 h-3" /> Download PDF
