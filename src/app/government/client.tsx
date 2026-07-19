@@ -567,7 +567,7 @@ export default function GovDashboardClient() {
                         const clone = element.cloneNode(true) as HTMLElement;
                         const allElements = clone.querySelectorAll('*');
                         allElements.forEach(el => {
-                          if (el.tagName === 'BUTTON') {
+                          if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
                             el.remove();
                           } else if (el.className && typeof el.className === 'string') {
                             // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
@@ -932,7 +932,7 @@ export default function GovDashboardClient() {
                                   const clone = element.cloneNode(true) as HTMLElement;
                                   const allElements = clone.querySelectorAll('*');
                                   allElements.forEach(el => {
-                                    if (el.tagName === 'BUTTON') {
+                                    if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
                                       el.remove();
                                     } else if (el.className && typeof el.className === 'string') {
                                       // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
