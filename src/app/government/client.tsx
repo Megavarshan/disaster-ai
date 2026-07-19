@@ -561,17 +561,21 @@ export default function GovDashboardClient() {
                       if (element) {
                         const tempDiv = document.createElement('div');
                         tempDiv.style.background = 'white';
-                        tempDiv.style.color = 'black';
-                        tempDiv.style.padding = '20px';
                         tempDiv.style.width = '800px';
+                        tempDiv.style.padding = '20px';
                         
                         const clone = element.cloneNode(true) as HTMLElement;
                         const allElements = clone.querySelectorAll('*');
                         allElements.forEach(el => {
-                          if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
+                          if (el.tagName === 'BUTTON') {
                             el.remove();
-                          } else {
-                            el.removeAttribute('class');
+                          } else if (el.className && typeof el.className === 'string') {
+                            // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
+                            el.className = el.className.split(' ').filter(c => 
+                              !c.includes('glass-card') && 
+                              !c.includes('backdrop-blur') && 
+                              !c.includes('animate-')
+                            ).join(' ');
                           }
                         });
                         
@@ -579,10 +583,10 @@ export default function GovDashboardClient() {
                         document.body.appendChild(tempDiv);
                         
                         const opt = {
-                          margin: 15,
+                          margin: 10,
                           filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
                           image: { type: 'jpeg' as const, quality: 0.98 },
-                          html2canvas: { scale: 2 },
+                          html2canvas: { scale: 2, useCORS: true },
                           jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                         };
                         
@@ -922,17 +926,21 @@ export default function GovDashboardClient() {
                                 if (element) {
                                   const tempDiv = document.createElement('div');
                                   tempDiv.style.background = 'white';
-                                  tempDiv.style.color = 'black';
-                                  tempDiv.style.padding = '20px';
                                   tempDiv.style.width = '800px';
+                                  tempDiv.style.padding = '20px';
                                   
                                   const clone = element.cloneNode(true) as HTMLElement;
                                   const allElements = clone.querySelectorAll('*');
                                   allElements.forEach(el => {
-                                    if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
+                                    if (el.tagName === 'BUTTON') {
                                       el.remove();
-                                    } else {
-                                      el.removeAttribute('class');
+                                    } else if (el.className && typeof el.className === 'string') {
+                                      // Keep Tailwind layout classes, only remove CSS filters that crash html2canvas
+                                      el.className = el.className.split(' ').filter(c => 
+                                        !c.includes('glass-card') && 
+                                        !c.includes('backdrop-blur') && 
+                                        !c.includes('animate-')
+                                      ).join(' ');
                                     }
                                   });
                                   
@@ -940,9 +948,11 @@ export default function GovDashboardClient() {
                                   document.body.appendChild(tempDiv);
                                   
                                   await html2pdf().set({ 
-                                    margin: 15, 
+                                    margin: 10, 
                                     filename: `AURA_Report_${new Date().getTime()}.pdf`, 
-                                    html2canvas: { scale: 2 } 
+                                    image: { type: 'jpeg' as const, quality: 0.98 },
+                                    html2canvas: { scale: 2, useCORS: true },
+                                    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
                                   }).from(tempDiv).save();
                                   
                                   document.body.removeChild(tempDiv);
