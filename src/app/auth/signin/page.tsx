@@ -17,15 +17,17 @@ export default function SignInPage() {
     setError('');
 
     try {
+      const callbackUrl = email.includes('ndma') || email.includes('dadip') ? '/government' : '/public';
       const result = await signIn('credentials', {
         email,
         password,
-        redirect: true,
-        callbackUrl: email.includes('ndma') || email.includes('dadip') ? '/government' : '/public',
+        redirect: false,
       });
 
       if (result?.error) {
         setError('Invalid email or password. Please try again.');
+      } else if (result?.ok) {
+        window.location.href = callbackUrl;
       }
     } catch {
       setError('An error occurred. Please try again.');
