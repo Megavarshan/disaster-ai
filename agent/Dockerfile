@@ -15,12 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose port
+# Expose default port
 EXPOSE 8001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')" || exit 1
-
-# Run the application
-CMD ["uvicorn", "aura_agent:app", "--host", "0.0.0.0", "--port", "8001"]
+# Run the application (Render injects the PORT env variable)
+CMD uvicorn aura_agent:app --host 0.0.0.0 --port ${PORT:-8001}
