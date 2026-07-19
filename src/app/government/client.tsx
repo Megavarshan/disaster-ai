@@ -554,17 +554,23 @@ export default function GovDashboardClient() {
                     </h3>
                   </div>
                   <button onClick={async () => {
-                    const html2pdf = (await import('html2pdf.js')).default;
-                    const element = document.getElementById('printable-report-container');
-                    const opt = {
-                      margin: 15,
-                      filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
-                      image: { type: 'jpeg' as const, quality: 0.98 },
-                      html2canvas: { scale: 2 },
-                      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-                    };
-                    if (element) {
-                      html2pdf().set(opt).from(element).save();
+                    try {
+                      const mod = await import('html2pdf.js');
+                      const html2pdf = mod.default || mod;
+                      const element = document.getElementById('printable-report-container');
+                      if (element) {
+                        const opt = {
+                          margin: 15,
+                          filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
+                          image: { type: 'jpeg' as const, quality: 0.98 },
+                          html2canvas: { scale: 2, useCORS: true },
+                          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+                        };
+                        html2pdf().set(opt).from(element).save();
+                      }
+                    } catch (err) {
+                      console.error('PDF error:', err);
+                      alert('Could not generate PDF. Check console.');
                     }
                   }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
                     Download Official PDF
@@ -879,25 +885,46 @@ export default function GovDashboardClient() {
                     {msg.content}
                   </div>
 
-                  {/* Generated Artifact */}
-                  {msg.artifact && (
-                    <div className="mt-3 w-full max-w-full glass-card p-0 overflow-hidden border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-slide-up">
-                      <div className="bg-purple-950/40 p-3 border-b border-purple-500/20 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-purple-400" />
-                          <span className="text-xs font-bold text-purple-300">Generated Report Artifact</span>
-                        </div>
-                        <button onClick={async () => {
-                          const html2pdf = (await import('html2pdf.js')).default;
-                          const element = document.getElementById(`artifact-${i}`);
-                          if (element) html2pdf().set({ margin: 15, filename: `AURA_Report_${new Date().getTime()}.pdf`, html2canvas: { scale: 2 } }).from(element).save();
-                        }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
-                          <Download className="w-3 h-3" /> Download PDF
-                        </button>
-                      </div>
-                      
-                      {/* Printable Area */}
-                      <div id={`artifact-${i}`} className="p-6 bg-white text-slate-900 max-h-[300px] overflow-y-auto">
+                      {/* Generated Artifact */}
+                      {msg.artifact && (
+                        <div className="mt-3 w-full max-w-full glass-card p-0 overflow-hidden border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)] animate-slide-up">
+                          <div className="bg-purple-950/40 p-3 border-b border-purple-500/20 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-purple-400" />
+                              <span className="text-xs font-bold text-purple-300">Generated Report Artifact</span>
+                            </div>
+                            <button onClick={async () => {
+                              try {
+                                const mod = await import('html2pdf.js');
+                                const html2pdf = mod.default || mod;
+                                const element = document.getElementById(`artifact-${i}`);
+                                if (element) {
+                                  // temporarily remove max-height for full capture
+                                  const origMaxHeight = element.style.maxHeight;
+                                  const origOverflow = element.style.overflowY;
+                                  element.style.maxHeight = 'none';
+                                  element.style.overflowY = 'visible';
+                                  
+                                  html2pdf().set({ margin: 15, filename: `AURA_Report_${new Date().getTime()}.pdf`, html2canvas: { scale: 2 } })
+                                    .from(element)
+                                    .save()
+                                    .then(() => {
+                                      // restore styles
+                                      element.style.maxHeight = origMaxHeight;
+                                      element.style.overflowY = origOverflow;
+                                    });
+                                }
+                              } catch (err) {
+                                console.error('PDF error:', err);
+                                alert('Could not generate PDF. Check console.');
+                              }
+                            }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
+                              <Download className="w-3 h-3" /> Download PDF
+                            </button>
+                          </div>
+                          
+                          {/* Printable Area */}
+                          <div id={`artifact-${i}`} className="p-6 bg-white text-slate-900 max-h-[300px] overflow-y-auto">
                         <div className="text-center border-b-2 border-slate-200 pb-4 mb-4">
                           <h3 className="text-xl font-black uppercase text-purple-900">{msg.artifact.title}</h3>
                           <p className="text-xs text-slate-500 font-mono mt-1">Generated: {msg.artifact.date}</p>
