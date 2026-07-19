@@ -135,7 +135,8 @@ export default function GovDashboardClient() {
     setIsAuraTyping(true);
 
     try {
-      const res = await fetch('http://localhost:8001/aura/chat', {
+      const baseUrl = process.env.NEXT_PUBLIC_AURA_API_URL || 'http://localhost:8001';
+      const res = await fetch(`${baseUrl}/aura/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg })
