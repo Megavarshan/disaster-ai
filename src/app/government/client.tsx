@@ -553,37 +553,37 @@ export default function GovDashboardClient() {
                       {generatedReportType === 'daily' ? 'Daily Situation Report' : generatedReportType === 'risk' ? 'Risk Assessment Report' : generatedReportType === 'incident' ? 'Incident Summary Report' : 'Resource Deployment Report'}
                     </h3>
                   </div>
-                  <button onClick={() => {
-                    const element = document.getElementById('printable-report-container');
-                    if (!element) return;
-                    const win = window.open('', '_blank');
-                    if (!win) return alert('Please allow pop-ups to print/download the report.');
-                    win.document.write(`
-                      <html>
-                        <head>
-                          <title>${generatedReportType} Report</title>
-                          ${document.head.innerHTML}
-                          <style>
-                            body { padding: 2rem; background: white !important; color: black !important; }
-                            .glass-card, .bg-slate-900, .bg-slate-800 { background: white !important; color: black !important; border: 1px solid #ccc !important; }
-                            * { max-height: none !important; overflow: visible !important; }
-                            @media print {
-                              body { padding: 0; }
-                              button { display: none !important; }
-                            }
-                          </style>
-                        </head>
-                        <body>
-                          ${element.innerHTML}
-                          <script>
-                            setTimeout(() => { window.print(); window.close(); }, 750);
-                          </script>
-                        </body>
-                      </html>
-                    `);
-                    win.document.close();
+                  <button onClick={async () => {
+                    try {
+                      const mod = await import('html2pdf.js');
+                      const html2pdf = mod.default ? mod.default : mod;
+                      const element = document.getElementById('printable-report-container');
+                      if (element) {
+                        const opt = {
+                          margin: 15,
+                          filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
+                          image: { type: 'jpeg' as const, quality: 0.98 },
+                          html2canvas: { scale: 2, useCORS: true },
+                          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+                        };
+                        
+                        // Temporarily adjust styles for better PDF rendering
+                        const origMaxHeight = element.style.maxHeight;
+                        const origOverflow = element.style.overflowY;
+                        element.style.maxHeight = 'none';
+                        element.style.overflowY = 'visible';
+                        
+                        html2pdf().set(opt).from(element).save().then(() => {
+                          element.style.maxHeight = origMaxHeight;
+                          element.style.overflowY = origOverflow;
+                        });
+                      }
+                    } catch (err) {
+                      console.error('PDF error:', err);
+                      alert('Could not generate PDF. Check console.');
+                    }
                   }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
-                    Download / Print PDF
+                    Download Official PDF
                   </button>
                 </div>
                 
@@ -903,37 +903,33 @@ export default function GovDashboardClient() {
                               <FileText className="w-4 h-4 text-purple-400" />
                               <span className="text-xs font-bold text-purple-300">Generated Report Artifact</span>
                             </div>
-                            <button onClick={() => {
-                              const element = document.getElementById(`artifact-${i}`);
-                              if (!element) return;
-                              const win = window.open('', '_blank');
-                              if (!win) return alert('Please allow pop-ups to print/download the report.');
-                              win.document.write(`
-                                <html>
-                                  <head>
-                                    <title>AURA Report</title>
-                                    ${document.head.innerHTML}
-                                    <style>
-                                      body { padding: 2rem; background: white !important; color: black !important; }
-                                      .glass-card, .bg-slate-900, .bg-slate-800 { background: white !important; color: black !important; border: 1px solid #ccc !important; }
-                                      * { max-height: none !important; overflow: visible !important; }
-                                      @media print {
-                                        body { padding: 0; }
-                                        button { display: none !important; }
-                                      }
-                                    </style>
-                                  </head>
-                                  <body>
-                                    ${element.innerHTML}
-                                    <script>
-                                      setTimeout(() => { window.print(); window.close(); }, 750);
-                                    </script>
-                                  </body>
-                                </html>
-                              `);
-                              win.document.close();
+                            <button onClick={async () => {
+                              try {
+                                const mod = await import('html2pdf.js');
+                                const html2pdf = mod.default ? mod.default : mod;
+                                const element = document.getElementById(`artifact-${i}`);
+                                if (element) {
+                                  // temporarily remove max-height for full capture
+                                  const origMaxHeight = element.style.maxHeight;
+                                  const origOverflow = element.style.overflowY;
+                                  element.style.maxHeight = 'none';
+                                  element.style.overflowY = 'visible';
+                                  
+                                  html2pdf().set({ margin: 15, filename: `AURA_Report_${new Date().getTime()}.pdf`, html2canvas: { scale: 2 } })
+                                    .from(element)
+                                    .save()
+                                    .then(() => {
+                                      // restore styles
+                                      element.style.maxHeight = origMaxHeight;
+                                      element.style.overflowY = origOverflow;
+                                    });
+                                }
+                              } catch (err) {
+                                console.error('PDF error:', err);
+                                alert('Could not generate PDF. Check console.');
+                              }
                             }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
-                              <Download className="w-3 h-3" /> Download / Print PDF
+                              <Download className="w-3 h-3" /> Download PDF
                             </button>
                           </div>
                           
