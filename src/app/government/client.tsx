@@ -553,51 +553,37 @@ export default function GovDashboardClient() {
                       {generatedReportType === 'daily' ? 'Daily Situation Report' : generatedReportType === 'risk' ? 'Risk Assessment Report' : generatedReportType === 'incident' ? 'Incident Summary Report' : 'Resource Deployment Report'}
                     </h3>
                   </div>
-                  <button onClick={async () => {
-                    try {
-                      const mod = await import('html2pdf.js');
-                      const html2pdf = (mod.default ? mod.default : mod) as any;
-                      const element = document.getElementById('printable-report-container');
-                      if (element) {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.style.background = 'white';
-                        tempDiv.style.width = '800px';
-                        tempDiv.style.padding = '20px';
-                        
-                        const clone = element.cloneNode(true) as HTMLElement;
-                        const allElements = clone.querySelectorAll('*');
-                        allElements.forEach(el => {
-                          if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
-                            el.remove();
-                          } else if (el.className && typeof el.className === 'string') {
-                            el.className = el.className.split(' ').filter(c => {
-                              if (c.match(/^w-\d+\/\d+$/)) return true; // keep width fractions
-                              if (c.includes('/') || c.includes('shadow') || c.includes('glass') || c.includes('backdrop') || c.includes('animate')) return false;
-                              return true;
-                            }).join(' ');
-                          }
-                        });
-                        
-                        tempDiv.innerHTML = clone.innerHTML;
-                        document.body.appendChild(tempDiv);
-                        
-                        const opt = {
-                          margin: 10,
-                          filename: `${generatedReportType}_report_${new Date().getTime()}.pdf`,
-                          image: { type: 'jpeg' as const, quality: 0.98 },
-                          html2canvas: { scale: 2, useCORS: true, logging: false },
-                          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-                        };
-                        
-                        await html2pdf().set(opt).from(tempDiv).save();
-                        document.body.removeChild(tempDiv);
-                      }
-                    } catch (err: any) {
-                      console.error('PDF error:', err);
-                      alert('PDF Error: ' + (err.message || err.toString()));
-                    }
+                  <button onClick={() => {
+                    const element = document.getElementById('printable-report-container');
+                    if (!element) return;
+                    const win = window.open('', '_blank');
+                    if (!win) return alert('Please allow pop-ups to print/download the report.');
+                    win.document.write(`
+                      <html>
+                        <head>
+                          <title>${generatedReportType} Report</title>
+                          ${document.head.innerHTML}
+                          <style>
+                            body { padding: 2rem; background: white !important; color: black !important; }
+                            .glass-card, .bg-slate-900, .bg-slate-800 { background: white !important; color: black !important; border: 1px solid #ccc !important; }
+                            * { max-height: none !important; overflow: visible !important; }
+                            @media print {
+                              body { padding: 0; }
+                              button { display: none !important; }
+                            }
+                          </style>
+                        </head>
+                        <body>
+                          ${element.innerHTML}
+                          <script>
+                            setTimeout(() => { window.print(); window.close(); }, 750);
+                          </script>
+                        </body>
+                      </html>
+                    `);
+                    win.document.close();
                   }} className="px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 text-sm font-semibold hover:bg-orange-500/30 transition">
-                    Download Official PDF
+                    Download / Print PDF
                   </button>
                 </div>
                 
@@ -917,48 +903,35 @@ export default function GovDashboardClient() {
                               <FileText className="w-4 h-4 text-purple-400" />
                               <span className="text-xs font-bold text-purple-300">Generated Report Artifact</span>
                             </div>
-                            <button onClick={async () => {
-                              try {
-                                const mod = await import('html2pdf.js');
-                                const html2pdf = (mod.default ? mod.default : mod) as any;
-                                const element = document.getElementById(`artifact-${i}`);
-                                if (element) {
-                                  const tempDiv = document.createElement('div');
-                                  tempDiv.style.background = 'white';
-                                  tempDiv.style.width = '800px';
-                                  tempDiv.style.padding = '20px';
-                                  
-                                  const clone = element.cloneNode(true) as HTMLElement;
-                                  const allElements = clone.querySelectorAll('*');
-                                  allElements.forEach(el => {
-                                    if (el.tagName === 'BUTTON' || el.tagName === 'SVG') {
-                                      el.remove();
-                                    } else if (el.className && typeof el.className === 'string') {
-                                      el.className = el.className.split(' ').filter(c => {
-                                        if (c.match(/^w-\d+\/\d+$/)) return true; // keep width fractions
-                                        if (c.includes('/') || c.includes('shadow') || c.includes('glass') || c.includes('backdrop') || c.includes('animate')) return false;
-                                        return true;
-                                      }).join(' ');
-                                    }
-                                  });
-                                  
-                                  tempDiv.innerHTML = clone.innerHTML;
-                                  document.body.appendChild(tempDiv);
-                                  
-                                  await html2pdf().set({ 
-                                    margin: 10, 
-                                    filename: `AURA_Report_${new Date().getTime()}.pdf`, 
-                                    image: { type: 'jpeg' as const, quality: 0.98 },
-                                    html2canvas: { scale: 2, useCORS: true, logging: false },
-                                    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
-                                  }).from(tempDiv).save();
-                                  
-                                  document.body.removeChild(tempDiv);
-                                }
-                              } catch (err: any) {
-                                console.error('PDF error:', err);
-                                alert('PDF Error: ' + (err.message || err.toString()));
-                              }
+                            <button onClick={() => {
+                              const element = document.getElementById(`artifact-${i}`);
+                              if (!element) return;
+                              const win = window.open('', '_blank');
+                              if (!win) return alert('Please allow pop-ups to print/download the report.');
+                              win.document.write(`
+                                <html>
+                                  <head>
+                                    <title>AURA Report</title>
+                                    ${document.head.innerHTML}
+                                    <style>
+                                      body { padding: 2rem; background: white !important; color: black !important; }
+                                      .glass-card, .bg-purple-500\\/10 { background: white !important; color: black !important; border: 1px solid #ccc !important; }
+                                      * { max-height: none !important; overflow: visible !important; }
+                                      @media print {
+                                        body { padding: 0; }
+                                        button { display: none !important; }
+                                      }
+                                    </style>
+                                  </head>
+                                  <body>
+                                    ${element.innerHTML}
+                                    <script>
+                                      setTimeout(() => { window.print(); window.close(); }, 750);
+                                    </script>
+                                  </body>
+                                </html>
+                              `);
+                              win.document.close();
                             }} className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded text-xs transition border border-purple-500/30">
                               <Download className="w-3 h-3" /> Download PDF
                             </button>
