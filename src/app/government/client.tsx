@@ -556,7 +556,7 @@ export default function GovDashboardClient() {
                   <button onClick={async () => {
                     try {
                       const mod = await import('html2pdf.js');
-                      const html2pdf = mod.default ? mod.default : mod;
+                      const html2pdf = (mod.default ? mod.default : mod) as any;
                       const element = document.getElementById('printable-report-container');
                       if (element) {
                         const opt = {
@@ -906,7 +906,7 @@ export default function GovDashboardClient() {
                             <button onClick={async () => {
                               try {
                                 const mod = await import('html2pdf.js');
-                                const html2pdf = mod.default ? mod.default : mod;
+                                const html2pdf = (mod.default ? mod.default : mod) as any;
                                 const element = document.getElementById(`artifact-${i}`);
                                 if (element) {
                                   // temporarily remove max-height for full capture
