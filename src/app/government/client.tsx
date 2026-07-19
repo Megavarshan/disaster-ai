@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Shield, AlertTriangle, Activity, BarChart3, Brain, Send, ArrowLeft, ArrowRight, CheckCircle, XCircle, Clock, MessageSquare, Phone, Users, FileText, TrendingDown, Bot, Download } from 'lucide-react';
@@ -12,10 +13,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const DisasterMap = dynamic(() => import('@/components/map/disaster-map'), { ssr: false, loading: () => <div className="h-[400px] rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center"><span className="text-sm text-slate-500">Loading map...</span></div> });
 
 export default function GovDashboardClient() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState(false);
+  const { data: session } = useSession();
 
   const [results, setResults] = useState<PipelineResult[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,16 +125,6 @@ export default function GovDashboardClient() {
     setTimeout(() => { setSendingAlert(false); setAlertSent(true); setTimeout(() => setAlertSent(false), 3000); }, 1500);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (username === 'ndma' && password === 'ndma@1') {
-      setIsAuthenticated(true);
-      setLoginError(false);
-    } else {
-      setLoginError(true);
-    }
-  };
-
   const handleAuraSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -176,39 +164,7 @@ export default function GovDashboardClient() {
     }
   };
 
-  if (!isAuthenticated) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#050a18' }}>
-      <div className="max-w-md w-full glass-card p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="flex flex-col items-center mb-8 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white text-center">Government Agency Portal</h1>
-          <p className="text-sm text-orange-400 font-medium tracking-widest uppercase mt-1">DADIP Operations Center</p>
-        </div>
-        
-        <form onSubmit={handleLogin} className="space-y-4 relative z-10">
-          {loginError && <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400 text-center">Invalid credentials. Please try again.</div>}
-          <div>
-            <label className="text-xs text-slate-400 block mb-1">Login ID</label>
-            <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-orange-500/50" placeholder="Enter Login ID" />
-          </div>
-          <div>
-            <label className="text-xs text-slate-400 block mb-1">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-orange-500/50" placeholder="••••••••" />
-          </div>
-          <button type="submit" className="w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-white font-bold hover:shadow-lg hover:shadow-orange-500/25 transition-all">
-            Secure Login
-          </button>
-          <div className="text-center mt-4">
-            <p className="text-xs text-slate-500">Use default credentials:</p>
-            <p className="text-xs font-mono text-slate-400 mt-0.5">ID: ndma <span className="mx-2">|</span> Pass: ndma@1</p>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#050a18' }}>
@@ -230,8 +186,20 @@ export default function GovDashboardClient() {
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /><span className="text-[10px] text-emerald-400">LIVE</span>
             </div>
-            <div className="text-right hidden sm:block"><p className="text-xs text-slate-300">Emergency Officer</p><p className="text-[10px] text-slate-500">NDMA Operations</p></div>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-xs font-bold">GO</div>
+            <div className="text-right hidden sm:block">
+              <p className="text-xs text-slate-300">{session?.user?.name || 'Officer'}</p>
+              <p className="text-[10px] text-slate-500">{session?.user?.role === 'admin' ? 'System Admin' : 'NDMA Operations'}</p>
+            </div>
+            {session?.user?.image ? (
+              <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-xs font-bold">
+                {(session?.user?.name?.[0] || 'G').toUpperCase()}
+              </div>
+            )}
+            <button onClick={() => signOut({ callbackUrl: '/' })} className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-xs font-medium hover:bg-red-500/20 transition">
+              Sign Out
+            </button>
           </div>
         </div>
       </header>

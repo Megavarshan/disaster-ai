@@ -41,8 +41,9 @@ export default function LandingPage() {
           </div>
           <div className="flex items-center gap-4">
             <Link href="/public" className="text-sm text-slate-300 hover:text-white transition">Public</Link>
-            <Link href="/government" className="text-sm text-slate-300 hover:text-white transition">Government</Link>
+
             <Link href="/about" className="text-sm text-cyan-400 font-medium hover:text-cyan-300 transition">About Developer</Link>
+            <Link href="/auth/signin" className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-medium hover:shadow-lg hover:shadow-cyan-500/20 transition-all">Sign In</Link>
           </div>
         </div>
       </nav>
@@ -71,9 +72,7 @@ export default function LandingPage() {
               <Link href="/public" className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold hover:shadow-xl hover:shadow-cyan-500/25 transition-all flex items-center gap-2">
                 Public Dashboard <ArrowRight className="w-4 h-4" />
               </Link>
-              <Link href="/government" className="px-6 py-3 rounded-xl border border-white/10 text-slate-300 font-medium hover:bg-white/5 transition-all flex items-center gap-2">
-                Government Portal <Shield className="w-4 h-4" />
-              </Link>
+
             </div>
           </div>
 

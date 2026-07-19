@@ -3,3 +3,10 @@ uvicorn
 pandas
 python-multipart
 numpy
+psycopg2-binary
+python-dotenv
+httpx
+bcrypt
+groq
+supabase
+python-dotenv
