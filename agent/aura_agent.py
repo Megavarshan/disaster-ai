@@ -102,7 +102,7 @@ If "artifact" is not null, it MUST follow this structure:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_msg}
             ],
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             response_format={"type": "json_object"},
             temperature=0.2,
         )
@@ -174,7 +174,7 @@ Return ONLY the JSON object.
     try:
         response = groq_client.chat.completions.create(
             messages=[{"role": "system", "content": system_prompt}],
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             response_format={"type": "json_object"},
             temperature=0.1,
         )
